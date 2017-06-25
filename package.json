@@ -1,0 +1,27 @@
+{
+  "name": "rest-node",
+  "version": "0.0.1",
+  "description": "REST Driver for Nodejs",
+  "main": "./js/index.js",
+  "typings": "./js/index.d.ts",
+  "scripts": {},
+  "author": "Wen Chang",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wchang28/rest-node-2.git"
+  },
+  "dependencies": {
+    "@types/form-data": "^0.0.33",
+    "@types/lodash": "^4.14.64",
+    "@types/node": "^6.0.73",
+    "@types/request": "^0.0.43",
+    "eventsource": "^0.2.1",
+    "eventsource-typings": "git+https://github.com/wchang28/eventsource-typings.git",
+    "form-data": "^2.1.4",
+    "lodash": "^4.17.4",
+    "request": "^2.81.0",
+    "rest-api-interfaces": "git+https://github.com/wchang28/rest-api-interfaces.git",
+    "rest-driver": "git+https://github.com/wchang28/rest-driver.git"
+  }
+}
