@@ -82,7 +82,7 @@ let getRequestCallback = (done:(err: IError, restReturn: RESTReturn) => void) : 
 }
 
 export function get() : $dr.$Driver {
-    let searchString = (qs: any) : string => (qs ? "?" + (typeof qs === "string" ? qs: querystring.stringify(qs)) : ""); 
+    let searchString = (qs: any) : string => (qs && JSON.stringify(qs) != "{}" ? "?" + (typeof qs === "string" ? qs: querystring.stringify(qs)) : ""); 
     let driver:$dr.$Driver  = {
         $J: (method: HTTPMethod, url:string, data:any, options?: ApiCallOptions) : Promise<RESTReturn> => {
             return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {

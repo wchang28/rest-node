@@ -81,7 +81,7 @@ var getRequestCallback = function (done) {
     return callback;
 };
 function get() {
-    var searchString = function (qs) { return (qs ? "?" + (typeof qs === "string" ? qs : querystring.stringify(qs)) : ""); };
+    var searchString = function (qs) { return (qs && JSON.stringify(qs) != "{}" ? "?" + (typeof qs === "string" ? qs : querystring.stringify(qs)) : ""); };
     var driver = {
         $J: function (method, url, data, options) {
             return new Promise(function (resolve, reject) {
