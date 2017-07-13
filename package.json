@@ -1,6 +1,6 @@
 {
   "name": "rest-node",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "REST Driver for Nodejs",
   "main": "./js/index.js",
   "typings": "./js/index.d.ts",
@@ -16,7 +16,7 @@
     "@types/lodash": "^4.14.64",
     "@types/node": "^6.0.73",
     "@types/request": "^0.0.43",
-    "eventsource": "^0.2.1",
+    "eventsource": "^1.0.4",
     "eventsource-typings": "git+https://github.com/wchang28/eventsource-typings.git",
     "form-data": "^2.1.4",
     "lodash": "^4.17.4",

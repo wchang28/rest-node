@@ -111,7 +111,15 @@ function get() {
         $E: function (url, options) {
             return new Promise(function (resolve, reject) {
                 var EventSource = require('eventsource');
-                var es = new EventSource(url, options);
+                var eventSourceInitDict = {};
+                if (options && options.headers)
+                    eventSourceInitDict.headers = options.headers;
+                if (options && typeof options.rejectUnauthorized === "boolean") {
+                    eventSourceInitDict.https = {
+                        rejectUnauthorized: options.rejectUnauthorized
+                    };
+                }
+                var es = new EventSource(url, eventSourceInitDict);
                 es.onopen = function () { resolve({ eventSrc: es }); };
                 es.onerror = function (err) {
                     es.close();

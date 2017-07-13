@@ -110,7 +110,14 @@ export function get() : $dr.$Driver {
         ,$E: (url: string, options?:ApiCallOptions) : Promise<$dr.I$EReturn> => {
             return new Promise<$dr.I$EReturn>((resolve: (value: $dr.I$EReturn) => void, reject:(err: any) => void) => {
                 let EventSource: eventSource.EventSourceConstructor = require('eventsource');
-                let es: eventSource.IEventSource = new EventSource(url, options);
+                let eventSourceInitDict: eventSource.InitDict = {};
+                if (options && options.headers) eventSourceInitDict.headers = options.headers;
+                if (options && typeof options.rejectUnauthorized === "boolean") {
+                    eventSourceInitDict.https = {
+                        rejectUnauthorized: options.rejectUnauthorized
+                    };
+                }
+                let es: eventSource.IEventSource = new EventSource(url, eventSourceInitDict);
                 es.onopen = () => {resolve({eventSrc: es});}
                 es.onerror = (err: eventSource.Error) => {
                     es.close();
