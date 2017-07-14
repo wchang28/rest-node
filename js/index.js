@@ -131,6 +131,7 @@ function get() {
                     if (initMsgs.length > 0)
                         ret.initMsgs = initMsgs;
                     es.onmessage = null;
+                    resolve(ret);
                 };
                 es.onerror = function (err) {
                     es.close();

@@ -128,6 +128,7 @@ export function get() : $dr.$Driver {
                     let ret: $dr.I$EReturn = {eventSrc: es};
                     if (initMsgs.length > 0) ret.initMsgs = initMsgs;
                     es.onmessage = null;
+                    resolve(ret);
                 }
                 es.onerror = (err: eventSource.Error) => {
                     es.close();
