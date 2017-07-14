@@ -128,13 +128,9 @@ function get() {
                 };
                 es.onopen = function () {
                     var ret = { eventSrc: es };
-                    // wait for 300 ms for the initial msgs to arrive
-                    setTimeout(function () {
-                        if (initMsgs.length > 0)
-                            ret.initMsgs = initMsgs;
-                        es.onmessage = null;
-                        resolve(ret);
-                    }, 300);
+                    if (initMsgs.length > 0)
+                        ret.initMsgs = initMsgs;
+                    es.onmessage = null;
                 };
                 es.onerror = function (err) {
                     es.close();
