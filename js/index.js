@@ -110,6 +110,7 @@ function get() {
         },
         $E: function (url, options) {
             return new Promise(function (resolve, reject) {
+                var initMsgs = [];
                 var EventSource = require('eventsource');
                 var eventSourceInitDict = {};
                 if (options && options.headers)
@@ -120,7 +121,21 @@ function get() {
                     };
                 }
                 var es = new EventSource(url, eventSourceInitDict);
-                es.onopen = function () { resolve({ eventSrc: es }); };
+                // It is possible that onmessage() is called BEFORE onopen() for npm package "eventsource". In this case, we must
+                // cache all the messages recieved before the onopen() event
+                es.onmessage = function (message) {
+                    initMsgs.push(message);
+                };
+                es.onopen = function () {
+                    var ret = { eventSrc: es };
+                    // wait for 300 ms for the initial msgs to arrive
+                    setTimeout(function () {
+                        if (initMsgs.length > 0)
+                            ret.initMsgs = initMsgs;
+                        es.onmessage = null;
+                        resolve(ret);
+                    }, 300);
+                };
                 es.onerror = function (err) {
                     es.close();
                     reject(err);

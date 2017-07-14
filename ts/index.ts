@@ -109,6 +109,7 @@ export function get() : $dr.$Driver {
         }
         ,$E: (url: string, options?:ApiCallOptions) : Promise<$dr.I$EReturn> => {
             return new Promise<$dr.I$EReturn>((resolve: (value: $dr.I$EReturn) => void, reject:(err: any) => void) => {
+                let initMsgs: eventSource.Message[] = [];
                 let EventSource: eventSource.EventSourceConstructor = require('eventsource');
                 let eventSourceInitDict: eventSource.InitDict = {};
                 if (options && options.headers) eventSourceInitDict.headers = options.headers;
@@ -118,7 +119,20 @@ export function get() : $dr.$Driver {
                     };
                 }
                 let es: eventSource.IEventSource = new EventSource(url, eventSourceInitDict);
-                es.onopen = () => {resolve({eventSrc: es});}
+                // It is possible that onmessage() is called BEFORE onopen() for npm package "eventsource". In this case, we must
+                // cache all the messages recieved before the onopen() event
+                es.onmessage = (message: eventSource.Message) => {
+                    initMsgs.push(message);
+                };
+                es.onopen = () => {
+                    let ret: $dr.I$EReturn = {eventSrc: es};
+                    // wait for 300 ms for the initial msgs to arrive
+                    setTimeout(() => {
+                        if (initMsgs.length > 0) ret.initMsgs = initMsgs;
+                        es.onmessage = null;
+                        resolve(ret);
+                    }, 300);
+                }
                 es.onerror = (err: eventSource.Error) => {
                     es.close();
                     reject(err);
