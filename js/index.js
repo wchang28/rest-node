@@ -230,7 +230,7 @@ function get() {
                 }).end();
             });
         },
-        $U: function (method, url, contentInfo, blob, options) {
+        $U: function (method, url, readableContent, options) {
             return new Promise(function (resolve, reject) {
                 var opt = {
                     url: url,
@@ -241,8 +241,8 @@ function get() {
                     opt.headers = _.assignIn(opt.headers, options.headers);
                 if (options && typeof options.rejectUnauthorized === 'boolean')
                     opt.strictSSL = options.rejectUnauthorized;
-                opt.headers = _.assignIn(opt.headers, { "Content-Type": contentInfo.type, "Content-Length": contentInfo.size.toString() });
-                blob.pipe(request(opt, getRequestCallback(function (err, restReturn) {
+                opt.headers = _.assignIn(opt.headers, { "Content-Type": readableContent.info.type, "Content-Length": readableContent.info.size.toString() });
+                readableContent.readable.pipe(request(opt, getRequestCallback(function (err, restReturn) {
                     if (err)
                         reject(err);
                     else

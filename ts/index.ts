@@ -217,7 +217,7 @@ export function get() : $dr.$Driver {
                 }).end();
             });
         }
-        ,$U: (method: HTTPMethod, url:string, contentInfo: ContentInfo, blob: Readable, options?: ApiCallOptions) : Promise<RESTReturn> => {
+        ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, options?: ApiCallOptions) : Promise<RESTReturn> => {
             return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {
                 let opt: request.Options = {
                     url
@@ -226,8 +226,8 @@ export function get() : $dr.$Driver {
                 };
                 if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers);
                 if (options && typeof options.rejectUnauthorized === 'boolean') opt.strictSSL = options.rejectUnauthorized;
-                opt.headers = _.assignIn(opt.headers, {"Content-Type": contentInfo.type, "Content-Length": contentInfo.size.toString()});
-                blob.pipe(request(opt, getRequestCallback((err: IError, restReturn: RESTReturn) => {
+                opt.headers = _.assignIn(opt.headers, {"Content-Type": readableContent.info.type, "Content-Length": readableContent.info.size.toString()});
+                readableContent.readable.pipe(request(opt, getRequestCallback((err: IError, restReturn: RESTReturn) => {
                     if (err)
                         reject(err);
                     else

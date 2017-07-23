@@ -1,6 +1,6 @@
 {
   "name": "rest-node",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "REST Driver for Nodejs",
   "main": "./js/index.js",
   "typings": "./js/index.d.ts",
