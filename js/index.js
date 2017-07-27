@@ -241,7 +241,10 @@ function get() {
                     opt.headers = _.assignIn(opt.headers, options.headers);
                 if (options && typeof options.rejectUnauthorized === 'boolean')
                     opt.strictSSL = options.rejectUnauthorized;
-                opt.headers = _.assignIn(opt.headers, { "Content-Type": readableContent.info.type, "Content-Length": readableContent.info.size.toString() });
+                var contentHeaders = { "Content-Type": readableContent.info.type };
+                if (readableContent.info.size)
+                    contentHeaders["Content-Length"] = readableContent.info.size.toString();
+                opt.headers = _.assignIn(opt.headers, contentHeaders);
                 readableContent.readable.pipe(request(opt, getRequestCallback(function (err, restReturn) {
                     if (err)
                         reject(err);

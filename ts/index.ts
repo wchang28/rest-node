@@ -226,7 +226,9 @@ export function get() : $dr.$Driver {
                 };
                 if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers);
                 if (options && typeof options.rejectUnauthorized === 'boolean') opt.strictSSL = options.rejectUnauthorized;
-                opt.headers = _.assignIn(opt.headers, {"Content-Type": readableContent.info.type, "Content-Length": readableContent.info.size.toString()});
+                let contentHeaders = {"Content-Type": readableContent.info.type};
+                if (readableContent.info.size) contentHeaders["Content-Length"] = readableContent.info.size.toString();
+                opt.headers = _.assignIn(opt.headers, contentHeaders);
                 readableContent.readable.pipe(request(opt, getRequestCallback((err: IError, restReturn: RESTReturn) => {
                     if (err)
                         reject(err);
