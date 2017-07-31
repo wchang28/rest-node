@@ -285,29 +285,30 @@ function get() {
                     var opt = {
                         hostname: parsed.hostname,
                         path: parsed.path,
-                        method: 'GET',
+                        method: method,
                         headers: {}
                     };
                     if (parsed.port)
                         opt.port = parseInt(parsed.port);
                     if (options && options.headers)
-                        opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
+                        opt.headers = _.assignIn(opt.headers, options.headers);
+                    opt.headers = _.assignIn(opt.headers, contentHeaders);
                     if (options && typeof options.rejectUnauthorized === 'boolean')
                         opt.rejectUnauthorized = options.rejectUnauthorized;
-                    opt.headers = _.assignIn(opt.headers, contentHeaders);
                     req = https.request(opt, callback);
                 }
                 else {
                     var opt = {
                         hostname: parsed.hostname,
                         path: parsed.path,
-                        method: 'GET',
+                        method: method,
                         headers: {}
                     };
                     if (parsed.port)
                         opt.port = parseInt(parsed.port);
                     if (options && options.headers)
-                        opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
+                        opt.headers = _.assignIn(opt.headers, options.headers);
+                    opt.headers = _.assignIn(opt.headers, contentHeaders);
                     req = http.request(opt, callback);
                 }
                 req.on('error', function (err) {

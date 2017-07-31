@@ -272,23 +272,24 @@ export function get() : $dr.$Driver {
                     let opt: https.RequestOptions = {
                         hostname: parsed.hostname,
                         path: parsed.path,
-                        method: 'GET',
+                        method,
                         headers: {}
                     };
                     if (parsed.port) opt.port = parseInt(parsed.port);
-                    if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
-                    if (options && typeof options.rejectUnauthorized === 'boolean') opt.rejectUnauthorized = options.rejectUnauthorized;
+                    if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers);
                     opt.headers = _.assignIn(opt.headers, contentHeaders);
+                    if (options && typeof options.rejectUnauthorized === 'boolean') opt.rejectUnauthorized = options.rejectUnauthorized;
                     req = https.request(opt, callback);
                 } else {
                     let opt: http.RequestOptions = {
                         hostname: parsed.hostname,
                         path: parsed.path,
-                        method: 'GET',
+                        method,
                         headers: {}
                     };
                     if (parsed.port) opt.port = parseInt(parsed.port);
-                    if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
+                    if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers);
+                    opt.headers = _.assignIn(opt.headers, contentHeaders);
                     req = http.request(opt, callback);
                 }
                 req.on('error', (err: Error) => {
