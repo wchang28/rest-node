@@ -50,6 +50,22 @@ function getIErrorFromErrorResponse(response, body) {
 function goodHTTPStatusCode(statusCode) {
     return ((statusCode >= 200 && statusCode < 300) || (statusCode === 304));
 }
+function processBody(body) {
+    var ret = null;
+    if (body) {
+        if (typeof body === 'string') {
+            try {
+                ret = JSON.parse(body); // see if the body is in JSON format, if so parse it
+            }
+            catch (e) {
+                ret = body; // body is not in JSON format
+            }
+        }
+        else
+            ret = body;
+    }
+    return ret;
+}
 var getRequestCallback = function (done) {
     var callback = function (error, response, body) {
         var err = null;
@@ -57,23 +73,10 @@ var getRequestCallback = function (done) {
         if (error)
             err = getIError(error);
         else {
-            if (!goodHTTPStatusCode(response.statusCode)) {
+            if (!goodHTTPStatusCode(response.statusCode))
                 err = getIErrorFromErrorResponse(response, body);
-            }
-            else {
-                if (body) {
-                    if (typeof body === 'string') {
-                        try {
-                            ret = JSON.parse(body); // see if the body is in JSON format, if so parse it
-                        }
-                        catch (e) {
-                            ret = body; // body is not in JSON format
-                        }
-                    }
-                    else
-                        ret = body;
-                }
-            }
+            else
+                ret = processBody(body);
         }
         if (typeof done === 'function')
             done(err, (response ? { status: response.statusCode, statusText: response.statusMessage, headers: response.headers, data: ret } : null));
@@ -229,28 +232,92 @@ function get() {
                     reject(getIError(err));
                 }).end();
             });
-        },
-        $U: function (method, url, readableContent, options) {
-            return new Promise(function (resolve, reject) {
-                var opt = {
-                    url: url,
-                    method: method,
-                    headers: {}
+        }
+        /*
+        ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, options?: ApiCallOptions) : Promise<RESTReturn> => {
+            return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {
+                let opt: request.Options = {
+                    url
+                    ,method
+                    ,headers: {}
                 };
-                if (options && options.headers)
-                    opt.headers = _.assignIn(opt.headers, options.headers);
-                if (options && typeof options.rejectUnauthorized === 'boolean')
-                    opt.strictSSL = options.rejectUnauthorized;
-                var contentHeaders = { "Content-Type": readableContent.info.type };
-                if (readableContent.info.size)
-                    contentHeaders["Content-Length"] = readableContent.info.size.toString();
+                if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers);
+                if (options && typeof options.rejectUnauthorized === 'boolean') opt.strictSSL = options.rejectUnauthorized;
+                let contentHeaders = {"Content-Type": readableContent.info.type};
+                if (readableContent.info.size) contentHeaders["Content-Length"] = readableContent.info.size.toString();
                 opt.headers = _.assignIn(opt.headers, contentHeaders);
-                readableContent.readable.pipe(request(opt, getRequestCallback(function (err, restReturn) {
+                readableContent.readable.pipe(request(opt, getRequestCallback((err: IError, restReturn: RESTReturn) => {
                     if (err)
                         reject(err);
                     else
                         resolve(restReturn);
                 })));
+            });
+        }
+        */
+        ,
+        $U: function (method, url, readableContent, options) {
+            return new Promise(function (resolve, reject) {
+                var req = null;
+                var callback = function (res) {
+                    res.on("error", function (err) {
+                        reject(getIError(err));
+                    });
+                    res.setEncoding('utf8');
+                    var body = '';
+                    res.on('data', function (chunk) {
+                        body += chunk;
+                    });
+                    res.on('end', function () {
+                        if (!goodHTTPStatusCode(res.statusCode))
+                            reject(getIErrorFromErrorResponse(res, body));
+                        else {
+                            var ret = processBody(body);
+                            resolve({ status: res.statusCode, statusText: res.statusMessage, headers: res.headers, data: ret });
+                        }
+                    });
+                };
+                var contentHeaders = { "Content-Type": readableContent.info.type };
+                if (readableContent.info.size)
+                    contentHeaders["Content-Length"] = readableContent.info.size.toString();
+                var parsed = url_1.parse(url);
+                if (parsed.protocol === 'https:') {
+                    var opt = {
+                        hostname: parsed.hostname,
+                        path: parsed.path,
+                        method: 'GET',
+                        headers: {}
+                    };
+                    if (parsed.port)
+                        opt.port = parseInt(parsed.port);
+                    if (options && options.headers)
+                        opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
+                    if (options && typeof options.rejectUnauthorized === 'boolean')
+                        opt.rejectUnauthorized = options.rejectUnauthorized;
+                    opt.headers = _.assignIn(opt.headers, contentHeaders);
+                    req = https.request(opt, callback);
+                }
+                else {
+                    var opt = {
+                        hostname: parsed.hostname,
+                        path: parsed.path,
+                        method: 'GET',
+                        headers: {}
+                    };
+                    if (parsed.port)
+                        opt.port = parseInt(parsed.port);
+                    if (options && options.headers)
+                        opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
+                    req = http.request(opt, callback);
+                }
+                req.on('error', function (err) {
+                    reject(getIError(err));
+                });
+                var readable = readableContent.readable;
+                readable.on("error", function (err) {
+                    reject(getIError(err));
+                });
+                readable.pipe(req);
             });
         },
         createFormData: function () { return new FormData(); }

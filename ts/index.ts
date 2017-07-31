@@ -54,6 +54,21 @@ function goodHTTPStatusCode(statusCode: number) : boolean {
     return ((statusCode >= 200 && statusCode < 300) || (statusCode === 304)); 
 }
 
+function processBody(body: any) : any {
+    let ret:any = null;
+    if (body) {
+        if (typeof body === 'string') { // body is a string
+            try {
+                ret = JSON.parse(body); // see if the body is in JSON format, if so parse it
+            } catch(e) {
+                ret = body; // body is not in JSON format
+            }
+        } else  // body ios not a string
+            ret = body;       
+    }
+    return ret;
+}
+
 let getRequestCallback = (done:(err: IError, restReturn: RESTReturn) => void) : request.RequestCallback => {
     let callback = (error: any, response: http.IncomingMessage, body: any) => {
         let err:IError = null;
@@ -61,20 +76,10 @@ let getRequestCallback = (done:(err: IError, restReturn: RESTReturn) => void) : 
         if (error)  // there is error
             err = getIError(error);
         else {
-            if (!goodHTTPStatusCode(response.statusCode)) {   // bad status code return
+            if (!goodHTTPStatusCode(response.statusCode))   // bad status code return
                 err = getIErrorFromErrorResponse(response, body);
-            } else {    // good status code return
-                if (body) {
-                    if (typeof body === 'string') {
-                        try {
-                            ret = JSON.parse(body); // see if the body is in JSON format, if so parse it
-                        } catch(e) {
-                            ret = body; // body is not in JSON format
-                        }
-                    } else
-                        ret = body;       
-                }
-            }
+            else    // good status code return
+                ret = processBody(body);
         }
         if (typeof done === 'function') done(err, (response ? {status: response.statusCode, statusText: response.statusMessage, headers: response.headers, data: ret} : null));
     };
@@ -217,6 +222,7 @@ export function get() : $dr.$Driver {
                 }).end();
             });
         }
+        /*
         ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, options?: ApiCallOptions) : Promise<RESTReturn> => {
             return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {
                 let opt: request.Options = {
@@ -235,6 +241,64 @@ export function get() : $dr.$Driver {
                     else
                         resolve(restReturn);
                 })));
+            });
+        }
+        */
+        ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, options?: ApiCallOptions) : Promise<RESTReturn> => {
+            return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {
+                let req: http.ClientRequest = null;
+                let callback = (res: http.IncomingMessage) => {
+                    res.on("error", (err: Error) => {
+                        reject(getIError(err));
+                    });
+                    res.setEncoding('utf8');
+                    let body = '';
+                    res.on('data', (chunk:string) => {
+                        body += chunk;
+                    });
+                    res.on('end', () => {
+                        if (!goodHTTPStatusCode(res.statusCode))   // bad status code return
+                            reject(getIErrorFromErrorResponse(res, body));
+                        else {    // good status code return
+                            let ret = processBody(body);
+                            resolve({status: res.statusCode, statusText: res.statusMessage, headers: res.headers, data: ret});
+                        }
+                    });
+                };
+                let contentHeaders: any = {"Content-Type": readableContent.info.type};
+                if (readableContent.info.size) contentHeaders["Content-Length"] = readableContent.info.size.toString();
+                let parsed = parseUrl(url);
+                if (parsed.protocol === 'https:') {
+                    let opt: https.RequestOptions = {
+                        hostname: parsed.hostname,
+                        path: parsed.path,
+                        method: 'GET',
+                        headers: {}
+                    };
+                    if (parsed.port) opt.port = parseInt(parsed.port);
+                    if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
+                    if (options && typeof options.rejectUnauthorized === 'boolean') opt.rejectUnauthorized = options.rejectUnauthorized;
+                    opt.headers = _.assignIn(opt.headers, contentHeaders);
+                    req = https.request(opt, callback);
+                } else {
+                    let opt: http.RequestOptions = {
+                        hostname: parsed.hostname,
+                        path: parsed.path,
+                        method: 'GET',
+                        headers: {}
+                    };
+                    if (parsed.port) opt.port = parseInt(parsed.port);
+                    if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers, contentHeaders);
+                    req = http.request(opt, callback);
+                }
+                req.on('error', (err: Error) => {
+                    reject(getIError(err));
+                });
+                let readable = readableContent.readable;
+                readable.on("error", (err: Error) => {
+                    reject(getIError(err));
+                })
+                readable.pipe(req);
             });
         }
         ,createFormData: () : FormData => { return new FormData();}
