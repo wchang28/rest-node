@@ -222,28 +222,6 @@ export function get() : $dr.$Driver {
                 }).end();
             });
         }
-        /*
-        ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, options?: ApiCallOptions) : Promise<RESTReturn> => {
-            return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {
-                let opt: request.Options = {
-                    url
-                    ,method
-                    ,headers: {}
-                };
-                if (options && options.headers) opt.headers = _.assignIn(opt.headers, options.headers);
-                if (options && typeof options.rejectUnauthorized === 'boolean') opt.strictSSL = options.rejectUnauthorized;
-                let contentHeaders = {"Content-Type": readableContent.info.type};
-                if (readableContent.info.size) contentHeaders["Content-Length"] = readableContent.info.size.toString();
-                opt.headers = _.assignIn(opt.headers, contentHeaders);
-                readableContent.readable.pipe(request(opt, getRequestCallback((err: IError, restReturn: RESTReturn) => {
-                    if (err)
-                        reject(err);
-                    else
-                        resolve(restReturn);
-                })));
-            });
-        }
-        */
         ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, options?: ApiCallOptions) : Promise<RESTReturn> => {
             return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {
                 let req: http.ClientRequest = null;
@@ -298,7 +276,7 @@ export function get() : $dr.$Driver {
                 let readable = readableContent.readable;
                 readable.on("error", (err: Error) => {
                     reject(getIError(err));
-                })
+                });
                 readable.pipe(req);
             });
         }
