@@ -248,10 +248,8 @@ function get() {
                     res.on('end', function () {
                         if (!goodHTTPStatusCode(res.statusCode))
                             reject(getIErrorFromErrorResponse(res, body));
-                        else {
-                            var ret = processBody(body);
-                            resolve({ status: res.statusCode, statusText: res.statusMessage, headers: res.headers, data: ret });
-                        }
+                        else
+                            resolve({ status: res.statusCode, statusText: res.statusMessage, headers: res.headers, data: processBody(body) });
                     });
                 };
                 var contentHeaders = { "Content-Type": readableContent.info.type };

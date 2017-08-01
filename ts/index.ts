@@ -237,10 +237,8 @@ export function get() : $dr.$Driver {
                     res.on('end', () => {
                         if (!goodHTTPStatusCode(res.statusCode))   // bad status code return
                             reject(getIErrorFromErrorResponse(res, body));
-                        else {    // good status code return
-                            let ret = processBody(body);
-                            resolve({status: res.statusCode, statusText: res.statusMessage, headers: res.headers, data: ret});
-                        }
+                        else    // good status code return
+                            resolve({status: res.statusCode, statusText: res.statusMessage, headers: res.headers, data: processBody(body)});
                     });
                 };
                 let contentHeaders: any = {"Content-Type": readableContent.info.type};
