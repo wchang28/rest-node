@@ -222,7 +222,7 @@ export function get() : $dr.$Driver {
                 }).end();
             });
         }
-        ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, options?: ApiCallOptions) : Promise<RESTReturn> => {
+        ,$U: (method: HTTPMethod, url:string, readableContent: $dr.ReadableContent<Readable>, progressCB?: $dr.ProgressCallback, options?: ApiCallOptions) : Promise<RESTReturn> => {
             return new Promise<RESTReturn>((resolve: (value: RESTReturn) => void, reject:(err: any) => void) => {
                 let req: http.ClientRequest = null;
                 let callback = (res: http.IncomingMessage) => {

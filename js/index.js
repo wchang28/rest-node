@@ -233,7 +233,7 @@ function get() {
                 }).end();
             });
         },
-        $U: function (method, url, readableContent, options) {
+        $U: function (method, url, readableContent, progressCB, options) {
             return new Promise(function (resolve, reject) {
                 var req = null;
                 var callback = function (res) {
